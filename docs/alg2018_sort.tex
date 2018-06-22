@@ -1,0 +1,199 @@
+\documentclass[a4paper,twoside,onecolumn,openany,article,10pt]{memoir}
+\usepackage{xeCJK}
+\usepackage{url}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{enumerate}
+%\usepackage{algorithm}
+%\usepackage{algorithmicx}
+%\usepackage{algpseudocode}
+\usepackage{ascmac}
+\usepackage{tikz}
+\usepackage{ulem}
+%\usepackage{stix}
+%\usepackage{bm}
+\defaultfontfeatures{Ligatures=TeX}
+
+\setCJKmainfont[BoldFont=Noto Sans CJK JP Bold]{Noto Serif CJK JP}
+%\setCJKmainfont{Noto Serif CJK JP}
+\setCJKsansfont{Noto Sans CJK JP}
+\setCJKmonofont{Noto Sans Mono CJK JP}
+
+\newtheorem{theorem}{定理}
+\theoremstyle{remark}
+\newtheorem{remark}{\textbf{余談}}
+
+
+\setmainfont[BoldFont=Noto Sans CJK JP Bold]{Noto Serif CJK JP}
+\setsansfont{Noto Sans CJK JP}
+\setmonofont{Inconsolata}
+
+\usepackage{listings}
+
+%\renewcommand{\algorithmcfname}{アルゴリズム}
+
+
+
+\settrimmedsize{\stockheight}{\stockwidth}{*}
+
+%\setlrmarginsandblock{1.5in}{1in}{*}
+\setlrmarginsandblock{1.2in}{1.2in}{*}
+\setulmarginsandblock{1.2in}{1.5in}{*}
+\setheadfoot{20mm}{15mm}
+
+%\newlength{\linespace}
+%\setlength{\linespace}{\baselineskip}
+%\setlength{\headheight}{\onelineskip}
+%\setlength{\headsep}{\linespace}
+%\addtolength{\headsep}{-\topskip}
+
+%\setlength{\footskip}{\onelineskip}
+%\setlength{\footnotesep}{\onelineskip}
+
+\checkandfixthelayout
+
+\counterwithout{section}{chapter}
+\setsecnumdepth{subsubsection}
+
+
+\title{アルゴリズムとデータ構造\\\vspace{.5em} \Large 分割統治法とソート}
+\date{2018年6月22日}
+\author{森~立平\\ \texttt{mori@c.titech.ac.jp}}
+
+\begin{document}
+\maketitle
+
+
+\noindent
+今日のメッセージ
+\begin{itemize}
+\item \textbf{分割統治法 = 「漸化式作ってそれをプログラムにするだけ」}
+\item \textbf{ソートは分割統治法で解ける}
+\item \textbf{分割統治法の時間計算量は漸化式を立てることによって見積もる}
+\end{itemize}
+
+\noindent
+今日の目標
+\begin{itemize}
+\item いろいろなソートアルゴリズムを習得する
+\end{itemize}
+
+
+
+
+\section{分割統治法}
+「アルゴリズム$\approx$漸化式」に従って漸化式をそのままアルゴリズムにしてしまう方法を「分割統治法(divide and conquer)」という。
+ユークリッドの互除法や二分探索は分割統治法の特別な場合となる(漸化式の右辺に一つしか、今計算しようとしている関数が登場しないので「decrease and conquer」と呼ばれることもあるようだ)。
+分割統治法が使える代表的な問題にソート問題がある。
+\section{ソート問題}
+与えられた数列 $a_1, a_2,\dotsc, a_n$ を小さい順に並び変える操作のことをソートと呼ぶ。
+\begin{align*}
+\text{入力}:&\quad a_1, a_2,\dotsc, a_n\\
+\text{出力}:&\quad a_{i_1}, a_{i_2}, \dotsc, a_{i_n} \qquad \text{ここで $i_1,\dotsc,i_n\in\{1,2,\dotsc,n\}$ は互いに相異なり、$a_{i_j}\le a_{i_{j+1}}$ を満たす}
+\end{align*}
+このソートを計算するために分割統治法を使うことができる。
+だが分割統治法を考える前に、素朴な方法でどれくらいの時間計算量があるかを考えてみよう。
+
+\section{選択ソート}
+\begin{equation*}
+\mathrm{Ssort}(A) =
+\begin{cases}
+[\,],&\text{if } |A| = 0\\
+[\min(A)] \circ \mathrm{Ssort}(A\setminus \min(A)),& \text{otherwise.}
+\end{cases}
+\end{equation*}
+ここで$\circ$は配列の連結とする。
+
+\begin{lstlisting}[basicstyle=\ttfamily\normalsize,showstringspaces=false,language=C,frame=single]
+void Ssort(int A[], int n){
+  int i, j, min;
+  for(i = 0; i < n; i++){
+    min = i;
+    for(j = i+1; j < n; j++){
+      if(A[j] < A[min]){
+        min = j;
+      }
+    }
+    int z = A[i];
+    A[i] = A[min];
+    A[min] = z;
+  }
+}
+\end{lstlisting}
+
+\section{挿入ソート}
+\begin{equation*}
+\mathrm{Isort}(A) =
+\begin{cases}
+[\,],&\text{if } |A| = 0\\
+\mathrm{insert}(\mathrm{last}(A),\, \mathrm{Isort}(A - \mathrm{last}(A))),& \text{otherwise.}
+\end{cases}
+\end{equation*}
+ここで
+$\mathrm{insert}(a,\, B)$
+は、整数$a$をソート済み配列$B$の適切な位置に挿入することで得られる配列である。
+
+\begin{lstlisting}[basicstyle=\ttfamily\normalsize,showstringspaces=false,language=C,frame=single]
+void Isort(int A[], int n){
+  int i, j, k, z;
+  for(i = 1; i < n; i++){
+    for(j = 0; j < i && A[j] < A[i]; j++) ; //二分探索で置き換え可能
+    z = A[i];
+    for(k = i; k > j; k--) A[k] = A[k-1];
+    A[j] = z;
+  }
+}
+\end{lstlisting}
+
+
+\section{マージソート}
+マージソートは挿入ソートと良く似ているが、配列を半分のサイズに分割する。
+\begin{align*}
+\mathrm{Msort}([a_1,\dotsc,a_n]) =
+\begin{cases}
+[\,],& \text{if } n = 0\\
+\mathrm{merge}(\mathrm{Msort}([a_1,\dotsc,a_{\lfloor n/2\rfloor}]),\, \mathrm{Msort}([a_{\lfloor n/2\rfloor+1}, \dotsc,a_n)]),& \text{otherwise.}
+\end{cases}
+\end{align*}
+ここで$\mathrm{merge}(A, B)$は2つのソート済みの配列$A$と$B$について、$A\circ B$をソートした配列である。
+\begin{lstlisting}[basicstyle=\ttfamily\normalsize,showstringspaces=false,language=C,frame=single]
+int B[N];
+
+void Msort(int A[], int n){
+  int i, j, k;
+  if(n <= 1) return;
+  Msort(A, n/2);
+  Msort(A+n/2, n - n/2);
+  i = j = k = 0;
+  while(i < n/2 && j < n - n/2){
+    if(A[i] < A[n/2 + j]) B[k++] = A[i++];
+    else B[k++] = A[n/2 + j++];
+  }
+  while(i < n/2) B[k++] = A[i++];
+  while(j < n - n/2) B[k++] = A[n/2 + j++];
+  for(i = 0; i < n; i++) A[i] = B[i];
+}
+\end{lstlisting}
+
+\section{時間計算量の見積り}
+\textbf{分割統治法の時間計算量は漸化式を立てる}ことによって見積もる。
+簡単のために、$n$を2の羃と仮定するとマージソートの時間計算量$\chi(n)$は
+\begin{align*}
+\chi(n) &= 2 \chi(n/2) + c n
+\end{align*}
+を満たす。よってこの漸化式を解くと
+\begin{align*}
+\frac{\chi(n)}n &= \frac{\chi(n/2)}{n/2} + c = \chi(1) + c \log n
+\end{align*}
+となり$\chi(n) = O(n\log n)$であることが分かる。
+
+%\section{クイックソート}
+
+\section{比較に基づくソートの下界}
+$T$回要素の比較をして、その結果だけを使って要素の置換をしてソート問題を解いたとしよう。
+その場合、$2^T \ge n!$が成り立つ。$n! \ge \left(\frac{n}{e}\right)^n$ より、$T\ge n\log n - n \log e$ が得られる。
+よって、比較に基づくソートでは$O(n\log n)$という時間計算量を改善することはできない。
+
+\end{document}
