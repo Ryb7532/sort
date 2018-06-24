@@ -108,7 +108,7 @@
 
 \begin{lstlisting}[basicstyle=\ttfamily\normalsize,showstringspaces=false,language=C,frame=single]
 void Ssort(int A[], int n){
-  int i, j, min;
+  int i, j, min, z;
   for(i = 0; i < n; i++){
     min = i;
     for(j = i+1; j < n; j++){
@@ -116,7 +116,7 @@ void Ssort(int A[], int n){
         min = j;
       }
     }
-    int z = A[i];
+    z = A[i];
     A[i] = A[min];
     A[min] = z;
   }
@@ -128,7 +128,7 @@ void Ssort(int A[], int n){
 \mathrm{Isort}(A) =
 \begin{cases}
 [\,],&\text{if } |A| = 0\\
-\mathrm{insert}(\mathrm{last}(A),\, \mathrm{Isort}(A - \mathrm{last}(A))),& \text{otherwise.}
+\mathrm{insert}(\mathrm{last}(A),\, \mathrm{Isort}(A \setminus \mathrm{last}(A))),& \text{otherwise.}
 \end{cases}
 \end{equation*}
 ここで
