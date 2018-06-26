@@ -5,7 +5,7 @@
 int B[N];
 
 void Ssort(int A[], int n){
-  int i, j, min;
+  int i, j, min, z;
   for(i = 0; i < n; i++){
     min = i;
     for(j = i+1; j < n; j++){
@@ -13,11 +13,9 @@ void Ssort(int A[], int n){
         min = j;
       }
     }
-if(min != i){
-    int z = A[i];
+    z = A[i];
     A[i] = A[min];
     A[min] = z;
-}
   }
 }
 
