@@ -1,0 +1,339 @@
+\documentclass[a4paper,twoside,onecolumn,openany,article,10pt]{memoir}
+\usepackage{xeCJK}
+\usepackage{url}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{enumerate}
+\usepackage{algorithm}
+%\usepackage{algorithmicx}
+\usepackage{algpseudocode}
+%\usepackage{ascmac}
+\usepackage{tikz}
+\usepackage{ulem}
+%\usepackage{stix}
+%\usepackage{bm}
+\defaultfontfeatures{Ligatures=TeX}
+
+\setCJKmainfont[BoldFont=Noto Sans CJK JP Bold]{Noto Serif CJK JP}
+%\setCJKmainfont{Noto Serif CJK JP}
+\setCJKsansfont{Noto Sans CJK JP}
+\setCJKmonofont{Noto Sans Mono CJK JP}
+
+\newtheorem{theorem}{定理}
+\newtheorem{lemma}{補題}
+\theoremstyle{remark}
+\newtheorem{remark}{\textbf{余談}}
+
+
+\setmainfont[BoldFont=Noto Sans CJK JP Bold]{Noto Serif CJK JP}
+\setsansfont{Noto Sans CJK JP}
+\setmonofont{Inconsolata}
+
+\usepackage{listings}
+
+%\renewcommand{\algorithmcfname}{アルゴリズム}
+
+
+
+\settrimmedsize{\stockheight}{\stockwidth}{*}
+
+%\setlrmarginsandblock{1.5in}{1in}{*}
+\setlrmarginsandblock{1.2in}{1.2in}{*}
+\setulmarginsandblock{1.2in}{1.5in}{*}
+\setheadfoot{20mm}{15mm}
+
+%\newlength{\linespace}
+%\setlength{\linespace}{\baselineskip}
+%\setlength{\headheight}{\onelineskip}
+%\setlength{\headsep}{\linespace}
+%\addtolength{\headsep}{-\topskip}
+
+%\setlength{\footskip}{\onelineskip}
+%\setlength{\footnotesep}{\onelineskip}
+
+\checkandfixthelayout
+
+\counterwithout{section}{chapter}
+\setsecnumdepth{subsubsection}
+
+
+\title{アルゴリズムとデータ構造\\\vspace{.5em} \Large 分割統治法とソート}
+\date{2018年6月26日}
+\author{森~立平\\ \texttt{mori@c.titech.ac.jp}}
+
+\begin{document}
+\maketitle
+
+
+\noindent
+今日のメッセージ
+\begin{itemize}
+\item \textbf{分割統治法の時間計算量のは漸化式を解けば得られる}
+\item \textbf{クイックソートはランダムにピボットを選べば平均$O(n\log n)$時間で計算できる}
+\item \textbf{中央値の中央値アルゴリズムを使えば$O(n)$時間で$k$番目に小さい値が計算できる}
+\end{itemize}
+
+\noindent
+今日の目標
+\begin{itemize}
+\item クイックソート、クイックセレクト、中央値の中央値アルゴリズムを理解する
+\end{itemize}
+
+\noindent
+今日の演習の目標
+\begin{itemize}
+\item クイックソート、クイックセレクトなどのプログラムを書けるようになる
+\end{itemize}
+
+\noindent
+今日の主な演習課題(提出締切は来週火曜日正午(12:00))
+\begin{enumerate}
+\item クイックソートとクイックセレクトのプログラムを書く
+\end{enumerate}
+
+\noindent
+今日の演習時間のワークフロー
+\begin{enumerate}
+\item この資料をよく読み、\texttt{alg2018/sort} にある課題をやる
+\end{enumerate}
+
+
+
+\section{分割統治法の時間計算量}
+分割統治法の時間計算量は漸化式を立てることによって見積る。
+長さ$n$の配列に対するマージソートの時間計算量$\chi(n)$は
+ある定数$c>0$について
+\begin{align*}
+\chi(n) &= \chi(\lfloor n/2\rfloor) + \chi(\lceil n/2\rceil) + c n
+\end{align*}
+を満たす。
+\begin{lemma}
+$\chi(n)$は$n$について単調非減少である。
+\end{lemma}
+\begin{proof}
+明らかに$\chi(0)\le\chi(1)$が成り立つ。
+$k\ge 1$とおく。
+$n+1\le k$について$\chi(n)\le\chi(n+1)$が成り立つとするときに、$\chi(k)\le\chi(k+1)$を示せばよい。
+$k$が偶数のとき、$\chi(k) = 2\chi(k/2) + c k$ と $\chi(k+1) = \chi(k/2) + \chi(k/2+1) + c(k+1)$が成り立つ。
+帰納法の仮定より$\chi(k/2)\le\chi(k/2+1)$なので$\chi(k)\le\chi(k+1)$が成り立つ。
+$k$が奇数のとき、$\chi(k) = \chi((k-1)/2) + \chi((k+1)/2) + c k$ と $\chi(k+1) = 2\chi((k+1)/2) + c(k+1)$が成り立つ。
+帰納法の仮定より$\chi((k-1)/2)\le\chi((k+1)/2)$なので$\chi(k)\le\chi(k+1)$が成り立つ。
+\end{proof}
+よって$m=2^{\lceil \log n\rceil}$とおけば($m$は$n$を2羃に切り上げたもの)、$\chi(n)\le\chi(m)$が成り立つ。
+$m$が2羃であることから$\chi(m)=O(n\log n)$が分かる。よって$\chi(n)=O(n\log n)$である。
+
+長さ$n$のソート済み配列に対する二分探索の時間計算量$\chi(n)$は
+ある定数$c>0$について
+\begin{align*}
+\chi(n) &\le \chi(\lceil n/2\rceil) + c
+\end{align*}
+を満たす。
+マージソートの場合と同様に$\chi$の単調性が示せるので、$\chi(n)\le \chi(m)$であり、
+\begin{align*}
+\chi(m) &\le \chi(m/2) + c
+\le \chi(1) + c \log m = \chi(1) + c \lceil \log n\rceil
+\end{align*}
+が得られる。よって$\chi(n)=O(\log n)$である。
+
+\if0
+一般的に分割統治法の時間計算量は次の形の不等式を満たす。
+\begin{align*}
+\chi(n) &\le a \chi(n/b) + T(n)
+\end{align*}
+
+まず簡単のため、$T(n)\le n$の場合を考えよう。
+ある整数$t$について$n=b^t$と仮定して$C_k := \frac{\chi(b^k)}{b^k}$とおくと、
+\begin{align*}
+%C_k &\le \frac{a}{b} C_{k-1} + \frac{T(b^k)}{b^k}
+C_k &\le \frac{a}{b} C_{k-1} + 1
+% \le 1 + \frac{a}{b} + \left(\frac{a}{b}\right)^2 + \dotsb + \left(\frac{a}{b}\right)^k
+\end{align*}
+が成り立つ。よって
+\begin{align*}
+C_k - \frac{b}{b-a} &\le \frac{a}{b} \left(C_{k-1} - \frac{b}{b-a}\right) \le \left(\frac{a}{b}\right)^{k-1}\left(C_1 - \frac{b}{b-a}\right)
+\end{align*}
+が成り立ち、$\chi(b^t) = O(a^t + b^t)$、つまり$\chi(n) = O(n^{\log_b a} + n)$が得られる。
+この時間計算量のオーダーは$T(n) = O(n^{\log_b a - \epsilon})$の場合についても正しい。
+$b \ge a$の場合は$T(n)\le n$なので、$a\ge b$と仮定する。
+\begin{align*}
+C_k &\le \frac{a}{b} C_{k-1} + \frac{T(b^k)}{b^k}
+\le \frac{a}{b} C_{k-1} + \frac{a^k}{b^k}
+\end{align*}
+という不等式が得られるが、
+\begin{align*}
+C_k &\le \frac{a}{b} C_{k-1} + \frac{T(b^t)}{b^t}
+\end{align*}
+\fi
+
+\section{クイックソート}
+クイックソートは次の漸化式に基づく。
+\begin{align*}
+\mathrm{Qsort}(A) =
+\begin{cases}
+[\,],& \text{if } |A| = 0\\
+(B, C) := \mathrm{split}(A\setminus a_p, a_p),\, \mathrm{Qsort}(B) \circ \mathrm{Qsort}(C)
+\end{cases}
+\end{align*}
+ここで、$a_p$は配列$A$の要素の一つであり、$\mathrm{split}(A, a)$は配列$A$を$a$以下の値からなる配列$B$と$a$より大きい値からなる配列$C$へ分割する関数である。
+$a_p$の選択の仕方によって時間計算量は大きく変化する。
+
+\section{クイックソートの時間計算量}
+クイックソートの漸化式に現れる$a_p$のことをピボットと呼ぶ。ピボットとしては配列の中央値を選ぶのが最適である。
+この章では配列に含まれる要素は全て異なる($\mathtt{A[i]\le A[j]}$かつ$\mathtt{A[i]\ge A[j]}$ならば$i = j$)と仮定する。
+仮に中央値を$O(n)$時間で選択できるとすると、マージソートと同じ漸化式が得られるので時間計算量は$O(n\log n)$である。
+仮に定数$\epsilon\in(0,1/2)$について$\epsilon n$番目以上$(1-\epsilon) n$番目未満の順番であるものをピボットとして$O(n)$時間で選択できるとすると
+クイックソートの時間計算量は
+\begin{align*}
+\chi(n) = \chi(\epsilon n) + \chi((1-\epsilon)n) + cn
+\end{align*}
+となる(簡単のため切り捨てや切り上げの影響は無視することにする)。
+多少天下り的ではあるが、ある定数$d>0$について帰納法で$\chi(n)\le dn\log n$を示す。
+$\chi(k)\le dk\log k$ が $k< \lceil 1/\epsilon\rceil$に対して成り立つように$d>0$をとることができる。
+このとき、$\chi(k)\le dk\log k$が$\lceil 1/\epsilon\rceil\le k<n$について成り立っているとすると,
+\begin{align*}
+\chi(n) &= \chi(\epsilon n) + \chi((1-\epsilon)n) + cn\\
+&\le d\epsilon n\log(\epsilon n) + d(1-\epsilon)n\log((1-\epsilon)n) + cn\\
+&= d n\log n - dn \left(-\epsilon \log\epsilon - (1-\epsilon)\log(1-\epsilon)\right) + c n
+\end{align*}
+ここでバイナリエントロピー関数$h(\epsilon):=-\epsilon\log\epsilon-(1-\epsilon)\log(1-\epsilon)$は$\epsilon\in(0,1)$について正である。
+よって$d$を十分大きく取り直せば、$dh(\epsilon) \ge c$となる。
+よって、$\chi(n)\le d n\log n$が得られる。よって、任意の自然数$n$について$\chi(n)\le dn\log n$である。
+
+実際のクイックソートの実装ではピボットはランダムに選ぶことが一般的である。
+ランダムに選べば高い確率で$\epsilon n$番目以上$(1-\epsilon) n$番目未満のピボットが選べるので、$O(n\log n)$時間で動作する。
+一様な確率でピボットを選択するクイックソートにおける平均比較回数が$O(n\log n)$であることを示す。
+ソートしたい配列に含まれる$i$番目に小さい要素を$a_i$とする。
+$1\le i<j\le n$ について確率変数$X_{ij}$を
+\begin{equation*}
+X_{ij} := \mathbb{I}\left\{\text{クイックソートの中で$a_i$と$a_j$が比較される}\right\}
+\end{equation*}
+と定義する。
+するとクイックソートの中で比較されるペアの個数は$X:=\sum_{1\le i<j\le n} X_{ij}$で表わされる。
+\begin{align*}
+\mathbb{E}[X] &=
+\mathbb{E}\left[\sum_{1\le i<j\le n} X_{ij}\right]
+=
+\sum_{1\le i<j\le n} \mathbb{E}[X_{ij}]\\
+&=
+\sum_{1\le i<j\le n} \Pr\left(\text{クイックソートの中で$a_i$と$a_j$が比較される}\right)
+\end{align*}
+もしも$a_i$や$a_j$よりも先に$a_i < a_k < a_j$となる$a_k$がピボットとして選ばれてしまったとすると、
+$a_i$と$a_j$が比較されることはない。すべての要素は一様な確率でピボットとして選ばれるので、
+\begin{align*}
+\Pr\left(\text{クイックソートの中で$a_i$と$a_j$が比較される}\right) = \frac2{j-i+1}
+\end{align*}
+となる。よって
+\begin{align*}
+\mathbb{E}[X] &=
+\sum_{1\le i<j\le n} \frac2{j-i+1}\\
+&= \sum_{i=1}^{n-1} \sum_{j=i+1}^n \frac2{j-i+1}\\
+&= \sum_{i=1}^{n-1} \sum_{k=2}^{n-i+1} \frac2{k}\\
+&\le \sum_{i=1}^{n-1} \sum_{k=1}^{n} \frac2{k}\\
+&\le n\sum_{k=1}^{n} \frac2{k} = O(n\log n).
+\end{align*}
+
+\section{クイックセレクト}
+配列の中で$k$番目に大きい要素を計算する問題を「選択問題」と呼ぶ。
+選択問題はソートを用いれば$O(n\log n)$時間で解くことができるが、もっと効率のよい$O(n)$時間のアルゴリズムが存在する。
+\begin{align*}
+\mathrm{Qselect}(A, k) =
+\begin{cases}
+%[\,],& \text{if } |A| = 0\\
+(B, C) := \mathrm{split}(A, a_p)\text{と置く}\\
+a_p,& \text{if } |B| = k+1\\
+\mathrm{Qselect}(B, k),&\text{if } |B| \le k\\
+\mathrm{Qselect}(C, k-|B|),&\text{otherwise.}
+\end{cases}
+\end{align*}
+
+\begin{lstlisting}[basicstyle=\ttfamily\normalsize,showstringspaces=false,language=C,frame=single]
+#define N 10000000
+
+int A[N];
+
+/*
+A[0], A[1], ..., A[n-1] の中でk+1番目に小さい値を返す関数。
+n >= 1 && k >= 0 && k < n は保証されている。
+ただし、Aの中身は並び換えてしまう。
+*/
+int quick_select(int A[], int n, int k){
+  int i, j, pivot;
+
+// 先頭の要素をピボットとする
+  pivot = A[0];
+  for(i = j = 1; i < n; i++){
+    if(A[i] <= pivot){
+      int z = A[j];
+      A[j] = A[i];
+      A[i] = z;
+      j++;
+    }
+  }
+  if(j == k+1) return pivot;
+  else if(j < k+1) return quick_select(A+j, n-j, k-j);
+  else return quick_select(A+1, j-1, k);
+}
+\end{lstlisting}
+
+もしも$O(n)$時間で中央値が計算できたとすると、クイックセレクトの時間計算量$\chi(n)$は
+$n$を2の羃とすると
+\begin{equation*}
+\chi(n) = \chi(n/2) + cn = c\left(n+\frac{n}2 + \frac{n}4 + \dotsb + 2\right) + \chi(1) \le 2c n + \chi(1) = O(n)
+\end{equation*}
+である。
+クイックソートと同様に大体中央にあるようなピボットを選んだ場合も$O(n)$時間であることはすぐに分かる。
+
+
+\section{中央値の中央値アルゴリズム}
+乱数を用いないで決定的に$O(n)$時間で中央値を計算することもできる。
+まず、$n$個の要素を5つづつ$\lceil n/5\rceil$個のグループに分ける。
+各グループの中央値を計算して、中央値を集めて長さ$\lceil n/5\rceil$の配列を作る。
+この長さ$\lceil n/5\rceil$の配列の中央値を再帰で計算し、その結果をピボットとして選択する。
+アルゴリズムを以下に示す。
+
+
+\begin{algorithm}
+\floatname{algorithm}{アルゴリズム}
+\caption{中央値の中央値アルゴリズムの擬似コード(入力: 整数の配列 $A$，非負の整数$k$．出力: 配列$A$の$k+1$番目に小さい要素．)}
+\label{alg:qselectl}
+\begin{algorithmic}
+\If {配列$A$の長さが5以下}
+  \State 解を計算して出力する．
+\Else
+  \State \textbf{配列$A$を長さ5づつに分割してそれぞれ中央値を計算し，長さ$\lceil n/5\rceil$の配列$A'$を作る．}
+  \State \textbf{配列$A'$の中央値をピボットとして選択(再帰呼出)．}
+  \State 配列$A$のピボット以外の要素を「ピボット以下のもの」からなる配列$B$と「ピボットより大きいもの」からなる配列$C$の2つの配列に分割する．
+  \State 配列$B$の要素の数を$r$とおく．
+  \If {$r == k$}
+    \State ピボットを解として出力する．
+  \ElsIf {$r<k$}
+    \State 配列$C$の中から$k-r$番目に小さい要素を解として出力する(再帰呼出)．
+  \Else
+    \State 配列$B$の中から$k+1$番目に小さい要素を解として出力する(再帰呼出)．
+  \EndIf
+\EndIf
+\end{algorithmic}
+\end{algorithm}
+
+このアルゴリズムを「中央値の中央値アルゴリズム」と呼ぶ。中央値の中央値アルゴリズムの時間計算量$\chi(n)$は次の漸化式を満たす(切り捨て、切り上げの影響は無視することにする)。
+\begin{align*}
+\chi(n) = \chi(n/5) + \chi(7n/10) + cn
+\end{align*}
+ある定数$d>0$について$\chi(n)\le dn$を帰納法で示す。帰納法の仮定を用いると
+\begin{align*}
+\chi(n) \le \frac{d}{5}n + \frac{7d}{10}n + cn = \frac{9d + 10 c}{10} n.
+\end{align*}
+よって$d\ge 10 c$となるような$d$を選べば、$\chi(n)\le d n$を帰納法で示せる。
+
+\section{比較に基づかないソートアルゴリズム: カウントソート、バケツソート、基数ソート}
+
+\section{演習課題}
+\begin{enumerate}
+\item クイックセレクトのソースコードを参考にしてクイックソートのプログラムを書け。
+\item クイックセレクト及びクイックソートのプログラムを改良して、重複した要素を持つ配列に対しても、それぞれ$O(n)$時間、$O(n\log n)$時間で動くプログラムを書け。ただし、ソートする配列以外に配列を使ってはならない。
+\item {[発展的課題]} 中央値の中央値アルゴリズムのプログラムを書け。
+\end{enumerate}
+
+\end{document}
