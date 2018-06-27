@@ -11,9 +11,11 @@ int A[N];
  */
 int quick_select(int A[], int n, int k){
     int i, j, pivot;
-    
+
     // 先頭の要素をピボットとする
-    pivot = A[0];
+    pivot = A[n/2];
+    A[n/2] = A[0];
+    A[0] = pivot;
     for(i = j = 1; i < n; i++){
         if(A[i] <= pivot){
             int z = A[j];
