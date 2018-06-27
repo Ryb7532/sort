@@ -43,10 +43,13 @@ int main(){
     A[i] = (long long int) A[i-1] * A[1] % N;
   }
 
-// すべての要素が同じ場合でも計算が早く終わるか確認する
-
   quick_sort(A, N);
   for(i=0;i<N;i++){
     if(A[i] != i) printf("ERROR %dth element is %d\n", i, A[i]);
+  }
+// すべての要素が同じ場合でも計算が早く終わるか確認する
+  for(i=0;i<N;i++) A[i] = 0;
+  for(i=0;i<N;i++){
+    if(A[i] != 0) printf("ERROR %dth element is %d\n", i, A[i]);
   }
 }
