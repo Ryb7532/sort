@@ -14,10 +14,17 @@ void quick_sort(int A[], int n){
     if(n <= 1) return;
     for(i = j = k = 1; i < n; i++){
         if(A[i] < pivot){
-            z = A[k];
-            A[k] = A[j];
-            A[j] = A[i];
-            A[i] = z;
+            if(i!=k){
+                z = A[k];
+                A[k] = A[j];
+                A[j] = A[i];
+                A[i] = z;
+            }
+            else{
+                z = A[i];
+                A[i] = A[j];
+                A[j] = z;
+            }
             j++;
             k++;
         }
